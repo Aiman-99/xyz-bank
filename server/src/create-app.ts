@@ -16,8 +16,7 @@ export interface AppOptions {
   rateLimit?: boolean;
 }
 
-export function createApp(db: Db, options: AppOptions = {}): Express {
-  const app = express();
+export function createApp(db: Db, options: AppOptions = {}, app: Express = express()): Express {
   app.set('trust proxy', 1); // behind the hosting provider's proxy
   app.disable('x-powered-by');
   app.use(helmet());

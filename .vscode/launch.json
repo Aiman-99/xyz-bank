@@ -15,7 +15,7 @@
       "type": "node",
       "request": "launch",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["tsx", "src/index.ts"],
+      "runtimeArgs": ["tsx", "src/app.ts"],
       "cwd": "${workspaceFolder}/server",
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**"]

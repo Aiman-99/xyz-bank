@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import express from 'express';
 import { createApp } from './create-app.js';
 import { config } from './config.js';
 import { createEmbeddedDb, createPostgresDb, lazyDb } from './db/index.js';
@@ -37,7 +38,9 @@ const db = lazyDb(async () => {
 const here = path.dirname(fileURLToPath(import.meta.url));
 const staticDir = path.resolve(here, '../public');
 
-const app = createApp(db, { staticDir });
+// express() is called here, in the entry file, because Vercel identifies the entry as
+// the file named app/index/server that imports express and default-exports the app.
+const app = createApp(db, { staticDir }, express());
 
 if (!config.isVercel) {
   db.ready()

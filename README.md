@@ -111,7 +111,7 @@ Errors always have the shape `{ "error": { "code", "message", "details?" } }`:
 Deployed on **Vercel** with a **Neon** PostgreSQL database. Frontend and API
 share one origin (no CORS, one URL):
 
-- The Express app (`server/src/index.ts`, default export) runs as a single Vercel Function.
+- The Express app (`server/src/app.ts`, default export) runs as a single Vercel Function.
 - The React build is written to `server/public`, which Vercel serves from its CDN.
 - `server/vercel.json` tells Vercel to build the client first.
 
@@ -133,8 +133,8 @@ and serves `server/public` itself.
 
 ```
 server/src
-  create-app.ts     Express app: middleware, routes, static frontend
-  index.ts          Entry: exports the app (Vercel) or listens on a port (elsewhere)
+  create-app.ts     Builds the Express app: middleware, routes, static frontend
+  app.ts            Entry: exports the app (Vercel) or listens on a port (elsewhere)
   auth.ts           Token signing/verification, role guards
   money.ts          Amount parsing/formatting (integer minor units)
   validation.ts     Zod request schemas
