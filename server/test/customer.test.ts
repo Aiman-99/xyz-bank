@@ -201,3 +201,36 @@ describe('account ownership', () => {
     ]);
   });
 });
+
+describe('limits', () => {
+  const BILLION = '1000000000';
+
+  it('accepts a deposit of exactly one billion and rejects anything above it', async () => {
+    const c = await ctx.newCustomer();
+    const ok = await request(ctx.app).post(`/api/accounts/${c.accountNumber}/deposit`).set(bearer(c.token)).send({ amount: BILLION });
+    expect(ok.status).toBe(201);
+    expect(ok.body.account).toMatchObject({ balance: '1000000000.00', balanceMinor: 100_000_000_000 });
+
+    const over = await request(ctx.app)
+      .post(`/api/accounts/${c.accountNumber}/deposit`)
+      .set(bearer(c.token))
+      .send({ amount: '1000000000.01' });
+    expect(over.status).toBe(400);
+    expect(await storedBalance(ctx.db, c.accountNumber)).toBe(100_000_000_000);
+  });
+
+  it('rejects a deposit that would take the balance over the account limit (422), changing nothing', async () => {
+    const c = await ctx.newCustomer();
+    // Put the account just under the limit directly, rather than making 1000 deposits.
+    await ctx.db.query('UPDATE accounts SET balance = $1 WHERE id = $2', [100_000_000_000_000 - 50, c.accountNumber]);
+
+    const over = await request(ctx.app).post(`/api/accounts/${c.accountNumber}/deposit`).set(bearer(c.token)).send({ amount: '0.51' });
+    expect(over.status).toBe(422);
+    expect(over.body.error.code).toBe('BALANCE_LIMIT');
+    expect(await storedBalance(ctx.db, c.accountNumber)).toBe(100_000_000_000_000 - 50);
+
+    const exact = await request(ctx.app).post(`/api/accounts/${c.accountNumber}/deposit`).set(bearer(c.token)).send({ amount: '0.50' });
+    expect(exact.status).toBe(201);
+    expect(exact.body.account.balance).toBe('1000000000000.00');
+  });
+});

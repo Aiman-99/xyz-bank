@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { api, SYMBOL, type Account, type Customer, type Transaction } from './api';
 
 type Message = { kind: 'success' | 'error'; text: string } | null;
@@ -165,6 +165,23 @@ export function CustomerView({
   );
 }
 
+/**
+ * The field takes 10 integer digits plus 2 for cents. The server's limit is
+ * 1,000,000,000.00 (one billion) and it rejects anything above that.
+ */
+const MAX_DIGITS = 12;
+
+/** Keep only digits, drop leading zeros, cap the length. "00.010" -> "10", "abc" -> "". */
+function toDigits(text: string): string {
+  return text.replace(/\D/g, '').replace(/^0+/, '').slice(0, MAX_DIGITS);
+}
+
+/** "" -> "00.00", "1" -> "00.01", "10" -> "00.10", "12345" -> "123.45". String-only, no floats. */
+function formatDigits(digits: string): string {
+  const padded = digits.padStart(4, '0');
+  return `${padded.slice(0, -2)}.${padded.slice(-2)}`;
+}
+
 function AmountForm({
   title,
   action,
@@ -174,15 +191,26 @@ function AmountForm({
   action: string;
   onSubmit: (amount: string) => Promise<boolean>;
 }) {
-  const [amount, setAmount] = useState('');
+  // The field holds whole minor units (cents) as a string of digits - never a decimal
+  // number. Digits enter from the right, like a card terminal: 1 -> 00.01, then 0 -> 00.10.
+  const [digits, setDigits] = useState('');
   const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const id = `amount-${title.toLowerCase()}`;
+  const display = formatDigits(digits);
+
+  const caretToEnd = () => {
+    const el = inputRef.current;
+    if (el && document.activeElement === el) el.setSelectionRange(el.value.length, el.value.length);
+  };
+  // Keep the caret at the end so typing and Backspace always act on the last digit.
+  useLayoutEffect(caretToEnd, [display]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    // The raw text is sent as-is; the server is the one that validates it.
-    if (await onSubmit(amount)) setAmount('');
+    // The server still validates the amount (zero, too large, ...) - this field only shapes input.
+    if (await onSubmit(display)) setDigits('');
     setBusy(false);
   }
 
@@ -193,11 +221,14 @@ function AmountForm({
         <label htmlFor={id}>Amount</label>
         <input
           id={id}
-          inputMode="decimal"
-          placeholder="0.00"
+          ref={inputRef}
+          className="amount"
+          inputMode="numeric"
           autoComplete="off"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          value={display}
+          onChange={(e) => setDigits(toDigits(e.target.value))}
+          onFocus={caretToEnd}
+          onClick={caretToEnd}
         />
         <button type="submit" disabled={busy}>
           {action}

@@ -1,6 +1,6 @@
 import type { Db, Row } from '../db/index.js';
 import { AppError, notFound } from '../errors.js';
-import { formatMinor, type Currency } from '../money.js';
+import { formatMinor, MAX_BALANCE_MINOR, type Currency } from '../money.js';
 
 export interface Account {
   accountNumber: number;
@@ -104,7 +104,8 @@ async function moveMoney(
 ): Promise<MoneyMovement | undefined> {
   const change =
     type === 'credit'
-      ? `SET balance = balance + $1::bigint WHERE id = $2 AND customer_id = $3`
+      ? `SET balance = balance + $1::bigint WHERE id = $2 AND customer_id = $3
+           AND balance + $1::bigint <= ${MAX_BALANCE_MINOR}`
       : `SET balance = balance - $1::bigint WHERE id = $2 AND customer_id = $3 AND balance >= $1::bigint`;
   const [row] = await db.query(
     `WITH moved AS (
@@ -132,8 +133,15 @@ export async function deposit(
   amountMinor: number,
 ): Promise<MoneyMovement> {
   const result = await moveMoney(db, 'credit', customerId, accountId, amountMinor);
-  if (!result) throw notFound('Account');
-  return result;
+  if (result) return result;
+  // Nothing was changed: either the account is missing / not the caller's (404 from
+  // getAccount), or the deposit would take the balance over the account limit.
+  await getAccount(db, customerId, accountId);
+  throw new AppError(
+    422,
+    'BALANCE_LIMIT',
+    `Deposit rejected: the account balance cannot exceed ${formatMinor(MAX_BALANCE_MINOR)}`,
+  );
 }
 
 export async function withdraw(

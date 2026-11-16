@@ -9,10 +9,17 @@ import { badRequest } from './errors.js';
 export const CURRENCIES = ['Dollar', 'Pound', 'Rupee'] as const;
 export type Currency = (typeof CURRENCIES)[number];
 
-/** Largest single deposit / withdrawal: 1,000,000.00 */
-export const MAX_AMOUNT_MINOR = 100_000_000;
+/** Largest single deposit / withdrawal: 1,000,000,000.00 (one billion). */
+export const MAX_AMOUNT_MINOR = 100_000_000_000;
 
-const AMOUNT_PATTERN = /^(\d{1,9})(?:\.(\d{1,2}))?$/;
+/**
+ * Largest balance an account may hold: 1,000,000,000,000.00 (one trillion).
+ * Far below Number.MAX_SAFE_INTEGER (about 90 trillion in minor units), so a
+ * balance is always an exact integer in JavaScript as well as in the database.
+ */
+export const MAX_BALANCE_MINOR = 100_000_000_000_000;
+
+const AMOUNT_PATTERN = /^(\d{1,10})(?:\.(\d{1,2}))?$/;
 
 /**
  * Parse a client-supplied amount ("12.34", "12", 12.5) into minor units.

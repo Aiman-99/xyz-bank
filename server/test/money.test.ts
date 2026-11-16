@@ -13,6 +13,7 @@ describe('parseAmount', () => {
     expect(parseAmount('0.1') + parseAmount('0.2')).toBe(30);
     expect(parseAmount('1.15')).toBe(115);
     expect(parseAmount('1000000')).toBe(100_000_000);
+    expect(parseAmount('1000000000')).toBe(100_000_000_000); // the maximum: one billion
   });
 
   it.each([
@@ -29,7 +30,8 @@ describe('parseAmount', () => {
     ['exponent notation', '1e5'],
     ['hex', '0x10'],
     ['thousands separator', '1,000'],
-    ['absurdly large', '1000000.01'],
+    ['just over the one billion limit', '1000000000.01'],
+    ['eleven integer digits', '10000000000'],
     ['astronomically large', '99999999999999999999'],
     ['Infinity', Infinity],
     ['NaN', NaN],
