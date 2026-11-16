@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createApp } from './app.js';
+import { createApp } from './create-app.js';
 import { config } from './config.js';
 import { createEmbeddedDb, createPostgresDb, lazyDb } from './db/index.js';
 import { migrate } from './db/schema.js';

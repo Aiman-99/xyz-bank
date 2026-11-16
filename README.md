@@ -133,7 +133,7 @@ and serves `server/public` itself.
 
 ```
 server/src
-  app.ts            Express app: middleware, routes, static frontend
+  create-app.ts     Express app: middleware, routes, static frontend
   index.ts          Entry: exports the app (Vercel) or listens on a port (elsewhere)
   auth.ts           Token signing/verification, role guards
   money.ts          Amount parsing/formatting (integer minor units)
