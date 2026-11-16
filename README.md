@@ -55,7 +55,7 @@ Frameworks: **Vitest** (runner/assertions) and **Supertest** (HTTP requests agai
 npm test
 ```
 
-68 tests in `server/test`:
+71 tests in `server/test`:
 
 - `money.test.ts` - amount parsing to integer minor units, float traps, invalid inputs
 - `customer.test.ts` - deposit, withdraw, over-balance rejection, history, ownership, ledger immutability
@@ -76,7 +76,7 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/xyzbank_test npm
 ## API
 
 Base path `/api`. JSON in and out. Authenticated routes need `Authorization: Bearer <token>`.
-Amounts are sent as decimal strings (`"12.34"`) and returned as both a decimal
+Amounts are sent as decimal strings (`"12.34"`, at most 1,000,000,000.00 per transaction) and returned as both a decimal
 string (`balance`) and integer minor units (`balanceMinor`).
 
 | Method | Path | Role | Description |
@@ -104,6 +104,7 @@ Errors always have the shape `{ "error": { "code", "message", "details?" } }`:
 | 403 | `FORBIDDEN` | Valid token, wrong role |
 | 404 | `NOT_FOUND` | Unknown account or customer - including another customer's account |
 | 422 | `INSUFFICIENT_FUNDS` | Withdrawal larger than the balance (nothing is changed) |
+| 422 | `BALANCE_LIMIT` | Deposit would take the balance above 1,000,000,000,000.00 (nothing is changed) |
 | 429 | - | Rate limit (300 requests / minute / IP) |
 
 ## Deployment
