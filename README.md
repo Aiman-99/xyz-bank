@@ -4,7 +4,7 @@ A full-stack rebuild of the GlobalSQA "XYZ Bank" demo: a Node.js REST API with
 PostgreSQL persistence and server-enforced business rules, plus a React client
 that is driven entirely by that API.
 
-**Live URL:** `TODO - paste your Vercel URL here, e.g. https://xyz-bank.vercel.app`
+**Live URL:** https://xyz-bank-gamma.vercel.app
 **Hosting:** Vercel (frontend on its CDN, API as a Vercel Function) and Neon (PostgreSQL)
 
 ## Stack and why
