@@ -65,8 +65,22 @@ message; no money decision depends on it.
 
 Tested in `server/test/concurrency.test.ts`. Locally the suite runs on
 embedded Postgres, which serialises statements, so it proves the handler has no
-read-modify-write gap; CI runs the same tests against a real PostgreSQL with a
-connection pool, which is the run that exercises genuine lock contention.
+read-modify-write gap; the CI workflow is set up to run the same tests against
+a real PostgreSQL with a connection pool, where genuine lock contention occurs.
+
+**Verified on the live deployment (16 Nov 2026).** A manual check against the
+production site (Vercel + Neon PostgreSQL) sent real simultaneous requests to
+demo account 1003:
+
+| Check | Requests | Result |
+| ----- | -------- | ------ |
+| Two at once | 2 x withdraw 160.00 from a 200.00 balance | 1 succeeded (201), 1 rejected (422 insufficient funds); balance 40.00 |
+| Ten at once | 10 x withdraw 8.00 from a 40.00 balance | exactly 5 succeeded, 5 rejected; balance 0.00, never negative |
+| Ledger | credits minus debits for the account | equal to the stored balance |
+
+The balance was then restored with a deposit. The test's transactions are still
+in that account's history, since ledger rows cannot be deleted. This was a
+one-off manual run, not an automated test.
 
 ## Security and trust boundaries
 
@@ -95,7 +109,8 @@ global state.
   deleting customers.
 - **Embedded Postgres for local dev/tests** is single-connection. It is real
   Postgres SQL (constraints, triggers, the same statements), but true
-  multi-connection contention is only exercised in CI or with `TEST_DATABASE_URL`.
+  multi-connection contention is only exercised in CI, with `TEST_DATABASE_URL`,
+  or by the manual live check described above.
 - **No idempotency keys:** a client that retries a timed-out deposit could
   apply it twice.
 - **Schema is applied by an idempotent script on boot**, not a versioned
