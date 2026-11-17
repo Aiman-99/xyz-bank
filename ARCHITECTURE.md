@@ -65,8 +65,9 @@ message; no money decision depends on it.
 
 Tested in `server/test/concurrency.test.ts`. Locally the suite runs on
 embedded Postgres, which serialises statements, so it proves the handler has no
-read-modify-write gap; the CI workflow is set up to run the same tests against
-a real PostgreSQL with a connection pool, where genuine lock contention occurs.
+read-modify-write gap; the CI workflow (GitHub Actions) runs the same tests
+against a real PostgreSQL with a connection pool, where genuine lock contention
+occurs, and passes.
 
 **Verified on the live deployment (16 Nov 2026).** A manual check against the
 production site (Vercel + Neon PostgreSQL) sent real simultaneous requests to
