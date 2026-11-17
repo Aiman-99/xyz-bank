@@ -55,7 +55,7 @@ Frameworks: **Vitest** (runner/assertions) and **Supertest** (HTTP requests agai
 npm test
 ```
 
-71 tests in `server/test`:
+74 tests in `server/test`:
 
 - `money.test.ts` - amount parsing to integer minor units, float traps, invalid inputs
 - `customer.test.ts` - deposit, withdraw, over-balance rejection, history, ownership, ledger immutability

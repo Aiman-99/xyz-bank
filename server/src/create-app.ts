@@ -39,9 +39,20 @@ export function createApp(db: Db, options: AppOptions = {}, app: Express = expre
   // In production the same service serves the built React app.
   const { staticDir } = options;
   if (staticDir && existsSync(staticDir)) {
-    app.use(express.static(staticDir));
+    app.use(
+      express.static(staticDir, {
+        setHeaders: (res, file) => {
+          // Always re-check the page itself, so a new deploy is picked up at once.
+          if (file.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
+        },
+      }),
+    );
     app.use((req, res, next) => {
-      if (req.method !== 'GET') return next();
+      // Fall back to the app page for page-like URLs only. A missing file (for example
+      // a script from an older deploy) must be a 404 - answering it with HTML would make
+      // the browser load a page as JavaScript and show a blank screen.
+      if (req.method !== 'GET' || path.extname(req.path) !== '') return next();
+      res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(path.join(staticDir, 'index.html'));
     });
   }
