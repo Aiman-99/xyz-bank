@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import express, { type Express } from 'express';
 import { rateLimit } from 'express-rate-limit';
@@ -39,21 +40,26 @@ export function createApp(db: Db, options: AppOptions = {}, app: Express = expre
   // In production the same service serves the built React app.
   const { staticDir } = options;
   if (staticDir && existsSync(staticDir)) {
-    app.use(
-      express.static(staticDir, {
-        setHeaders: (res, file) => {
-          // Always re-check the page itself, so a new deploy is picked up at once.
-          if (file.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
-        },
-      }),
-    );
+    // The page itself (index.html) is read and sent as text, not through the static file
+    // server. File-based validators are unsafe for it: hosting platforms can give every
+    // build's files the same timestamp, and index.html is the same size on every build,
+    // so a size+time ETag / Last-Modified check wrongly answers "304 Not Modified" after
+    // a deploy and leaves browsers on a page pointing at scripts that no longer exist.
+    // Sent this way, any ETag is a hash of the content, and browsers are told not to
+    // store the page at all. Scripts and styles have hashed names and cache normally.
+    const sendPage = async (res: express.Response) => {
+      const html = await readFile(path.join(staticDir, 'index.html'), 'utf8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.type('html').send(html);
+    };
+    app.get('/index.html', (_req, res) => sendPage(res));
+    app.use(express.static(staticDir, { index: false }));
     app.use((req, res, next) => {
       // Fall back to the app page for page-like URLs only. A missing file (for example
       // a script from an older deploy) must be a 404 - answering it with HTML would make
       // the browser load a page as JavaScript and show a blank screen.
       if (req.method !== 'GET' || path.extname(req.path) !== '') return next();
-      res.setHeader('Cache-Control', 'no-cache');
-      res.sendFile(path.join(staticDir, 'index.html'));
+      return sendPage(res);
     });
   }
 
