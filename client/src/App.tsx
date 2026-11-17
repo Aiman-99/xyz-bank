@@ -38,6 +38,8 @@ export function App() {
   );
 
   return (
+    // Page 1 (login) and page 2 (signed in) each have their own background illustration.
+    <div className={`backdrop ${session ? 'backdrop-app' : 'backdrop-login'}`}>
     <div className="page">
       <header className="topbar">
         <h1>XYZ Bank</h1>
@@ -71,6 +73,7 @@ export function App() {
           <CustomerView customer={session.customer} onAuthError={onAuthError} />
         )}
       </main>
+    </div>
     </div>
   );
 }

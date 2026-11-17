@@ -1,18 +1,22 @@
 :root {
-  --bg: #f4f6fa;
-  --card: #ffffff;
-  --text: #1c2433;
-  --muted: #5d6b82;
-  --border: #d9dfe9;
-  --primary: #1f4fd8;
-  --primary-dark: #173ca6;
-  --danger: #c0392b;
-  --success-bg: #e6f6ec;
-  --success-text: #17663a;
-  --error-bg: #fdecea;
-  --error-text: #a12a1f;
-  --info-bg: #e8f0fe;
-  --info-text: #1a3f9c;
+  /* Palette taken from the background illustrations: cream paper, sage green,
+     hibiscus coral and warm brown ink. */
+  --bg: #fbf0dc;
+  --card: rgba(255, 250, 240, 0.93);
+  --text: #46291b;
+  --muted: #7a5a44;
+  --border: #e2cba6;
+  --primary: #2f6b4f;
+  --primary-dark: #22523b;
+  --accent: #c04a33;
+  --danger: #b03a26;
+  --field: #fffdf7;
+  --success-bg: #e3f0df;
+  --success-text: #24573b;
+  --error-bg: #fbe3da;
+  --error-text: #9c2f1d;
+  --info-bg: #f6e7c8;
+  --info-text: #6b4a1f;
 }
 
 * {
@@ -274,4 +278,116 @@ input.amount {
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-size: 1.1rem;
+}
+
+/* ---------- Illustrated theme ---------- */
+
+body {
+  font-weight: 600;
+}
+
+/* The illustration sits on a fixed layer behind everything, washed with cream so
+   it stays a backdrop: content is always on near-opaque cards on top of it. */
+.backdrop {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+}
+.backdrop::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+.backdrop-login::before {
+  background-image: linear-gradient(rgba(251, 240, 220, 0.35), rgba(251, 240, 220, 0.35)), url('/bg-login.webp');
+}
+.backdrop-app::before {
+  background-image: linear-gradient(rgba(251, 240, 220, 0.6), rgba(251, 240, 220, 0.6)), url('/bg-app.webp');
+}
+
+.page {
+  padding-top: 16px;
+}
+
+.topbar {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 20px;
+  box-shadow: 0 2px 10px rgba(70, 41, 27, 0.08);
+}
+.topbar h1 {
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+h2,
+h3 {
+  color: var(--primary-dark);
+  font-weight: 800;
+}
+/* A heading that sits directly on the illustration gets its own plate. */
+.stack > h2 {
+  align-self: flex-start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 16px;
+}
+
+.card {
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(70, 41, 27, 0.1);
+  backdrop-filter: blur(3px);
+}
+
+label,
+th,
+.summary dt {
+  font-weight: 800;
+}
+.summary dd {
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+td,
+.muted {
+  font-weight: 600;
+}
+.alert {
+  font-weight: 700;
+  border: 1px solid var(--border);
+}
+
+input,
+select {
+  background: var(--field);
+  font-weight: 700;
+}
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline-color: var(--accent);
+}
+
+button {
+  font-weight: 800;
+}
+button.secondary,
+button.danger,
+.tab {
+  background: var(--field);
+}
+.tab {
+  box-shadow: 0 2px 8px rgba(70, 41, 27, 0.08);
+}
+.tab.active,
+.tab.active:hover {
+  background: var(--primary);
 }
