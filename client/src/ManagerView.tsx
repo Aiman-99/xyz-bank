@@ -2,6 +2,12 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { api, CURRENCIES, SYMBOL, type CustomerWithAccounts } from './api';
 
 type Tab = 'add' | 'open' | 'customers';
+
+// Field length limits. These mirror the server's rules (server/src/validation.ts), which
+// remain the real check - the limits here just stop over-long input being typed or pasted.
+const MAX_NAME = 50;
+const MAX_POST_CODE = 12;
+const MAX_SEARCH = 50;
 type Message = { kind: 'success' | 'error'; text: string } | null;
 
 export function ManagerView({ onAuthError }: { onAuthError: (err: unknown) => boolean }) {
@@ -70,6 +76,7 @@ export function ManagerView({ onAuthError }: { onAuthError: (err: unknown) => bo
           <input
             id="search"
             placeholder="Name or post code"
+            maxLength={MAX_SEARCH}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -171,11 +178,11 @@ function AddCustomer({ setMessage, fail, onDone }: FormProps) {
       <h3>Add Customer</h3>
       <form onSubmit={submit}>
         <label htmlFor="firstName">First Name</label>
-        <input id="firstName" {...field('firstName')} />
+        <input id="firstName" maxLength={MAX_NAME} autoComplete="off" {...field('firstName')} />
         <label htmlFor="lastName">Last Name</label>
-        <input id="lastName" {...field('lastName')} />
+        <input id="lastName" maxLength={MAX_NAME} autoComplete="off" {...field('lastName')} />
         <label htmlFor="postCode">Post Code</label>
-        <input id="postCode" {...field('postCode')} />
+        <input id="postCode" maxLength={MAX_POST_CODE} autoComplete="off" {...field('postCode')} />
         <button type="submit" disabled={busy}>
           Add Customer
         </button>
